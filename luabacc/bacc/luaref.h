@@ -23,6 +23,13 @@ private:
 	}
 
 public:
+	static inline LuaRef popLuaRef(lua_State *L) {
+		LuaRef v(L);
+		v.pop();
+		return v;
+	}
+
+public:
 	explicit LuaRef(lua_State *L)
 		: m_L(L),
 			m_ref(LUA_REFNIL) {
@@ -138,7 +145,12 @@ public:
 
 	template <typename T>
 	LuaRef operator[] (T key) const {
-		// TODO
+		push();
+		LuaStack<T>::push(m_L, key);
+		lua_gettable(m_L, -2);
+		LuaRef v = LuaRef::popLuaRef(m_L);
+		lua_pop(m_L, 1);
+		return v;
 	}
 
 	LuaRef const operator() () const {
@@ -150,9 +162,7 @@ public:
 
 LuaRef getGlobal(lua_State *L, const char *name) {
 	lua_getglobal(L, name);
-	LuaRef v(L);
-	v.pop();
-	return v;
+	return LuaRef::popLuaRef(L);
 }
 
 
@@ -170,9 +180,7 @@ template<> struct LuaStack<LuaRef> {
 	}
 	static inline LuaRef get(lua_State *L, int index) {
 		lua_pushvalue(L, index);
-		LuaRef v(L);
-		v.pop();
-		return v;
+		return LuaRef::popLuaRef(L);
 	}
 };
 
