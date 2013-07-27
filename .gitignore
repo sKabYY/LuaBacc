@@ -1,1 +1,5 @@
 *.swp
+*.a
+*.out
+*.o
+localtest
