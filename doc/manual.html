@@ -3,6 +3,7 @@
 
 <head>
 	<title>LuaBacc Reference Manual</title>
+	<link rel="stylesheet" type="text/css" href="manual.css">
 </head>
 
 <body>
@@ -24,7 +25,7 @@
 <h1>Contents</h1>
 <ul>
 	<li><a href="#s.intro">Introduction</a>
-	<p>
+	<li><a href="#s.utils">Utils</a>
 	<li><a href="#s.alfc">Accessing Lua from C++</a>
 	<ul>
 		<li><a href="#s.alfc.luaref">LuaRef</a>
@@ -36,9 +37,39 @@
 
 <h1><span id="s.intro">Introduction</span></h1>
 
+<h1><span id="s.utils">Utils</span></h1>
+There are some useful function in file "bacc/utils.h".
+
+<pre>
+lua_State* luaS_newstate();
+void luaS_close(lua_State *L);
+void luaS_dofile(lua_State *L, std::string path);
+void luaS_pcall(lua_State *L, int nargs=0, int nresults=0);
+</pre>
+
 <h1><span id="s.alfc">Accessing Lua from C++</span></h1>
 
 <h2><span id="s.alfc.luaref">LuaRef</span></h2>
+
+<pre>
+class LuaRef {
+public:
+	LuaRef(lua_State *L);
+	template&lttypename T&gt LuaRef(lua_State *L, Tv);
+	LuaRef(const LuaRef &ampother);
+	LuaRef(const Proxy &ampproxy);
+	template &lttypename T&gt LuaRef& operator= (T rhs);
+	std::string tostring();
+	lua_State* state();
+	int type();
+	bool is*();
+	template &lttypename T&gt T cast();
+	template &lttypename T&gt operator T ();
+	int length();
+	template &lttypename T&gt operator[] (T key);
+	template &lttypename... Args&gt LuaRef operator() (Args... args);
+}
+</pre>
 
 <h2><span id="s.alfc.table">Table</span></h1>
 
