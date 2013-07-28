@@ -12,6 +12,7 @@ class LuaRef {
 
 	class Proxy;
 	friend class Proxy;
+	friend class Iterator;
 	friend struct LuaStack<LuaRef>;
 	friend struct LuaStack<Proxy>;
 	friend LuaRef getGlobal(lua_State*, const char*);
