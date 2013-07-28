@@ -10,6 +10,10 @@ struct Nil {};
  */
 class LuaRef {
 
+	class Proxy;
+	friend struct LuaStack<LuaRef>;
+	friend struct LuaStack<Proxy>;
+
 private:
 
 /*
@@ -17,10 +21,11 @@ private:
  * NEVER use Proxy alone.
  */
 	class Proxy {
-		friend class LuaRef;
-	private:
-		lua_State* state() const {return m_L;}
 
+		friend class LuaRef;
+		friend struct LuaStack<Proxy>;
+
+	private:
 		/*
 		 * The table is in the registry,
 		 * and the key is at the top of the stack
@@ -32,15 +37,24 @@ private:
 				m_keyRef(luaL_ref(L, LUA_REGISTRYINDEX)) {
 		}
 
+
 		/*
 		 * This function may trigger a metamethod for the "index" event.
 		 */
 		int createRef() const {
+			push();
+			return luaL_ref(m_L, LUA_REGISTRYINDEX);
+		}
+
+		/*
+		 * Push the value onto the Lua stack.
+		 * May invoke metamethods.
+		 */
+		void push() const {
 			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_tableRef);
 			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_keyRef);
 			lua_gettable(m_L, -2); // This may trigger the "index" event.
 			lua_remove(m_L, -2);
-			return luaL_ref(m_L, LUA_REGISTRYINDEX);
 		}
 
 	private:
@@ -67,12 +81,86 @@ private:
 			return *this;
 		}
 
+		const Proxy& operator= (const Proxy &other) {
+			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_tableRef);
+			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_keyRef);
+			other.push();
+			lua_settable(m_L, -3); // This may trgger the "newindex" event
+			lua_pop(m_L, 1);
+			return *this;
+		}
+
+		lua_State* state() const {return m_L;}
+
+		int type() const {
+			push();
+			int type = lua_type(m_L, -1);
+			lua_pop(m_L, 1);
+			return type;
+		}
+
+    inline bool isNil() const {return type() == LUA_TNIL;}
+    inline bool isNumber() const {return type() == LUA_TNUMBER;}
+    inline bool isString() const {return type() == LUA_TSTRING;}
+    inline bool isTable() const {return type() == LUA_TTABLE;}
+    inline bool isFunction() const {return type() == LUA_TFUNCTION;}
+    inline bool isUserdata() const {return type() == LUA_TUSERDATA;}
+    inline bool isThread() const {return type() == LUA_TTHREAD;}
+    inline bool isLightUserdata() const {return type() == LUA_TLIGHTUSERDATA;}
+
+		/*
+		 * Explicit conversion.
+		 * May invoke metamethods.
+		 */
+		template <typename T>
+		T cast() const {
+			push();
+			T t = LuaStack<T>::get(m_L, lua_gettop(m_L));
+			lua_pop(m_L, 1);
+			return t;
+		}
+
+		/*
+		 * Implicit conversion
+		 * May invoke metamethods.
+		 */
+		template <typename T>
+		inline operator T () const {
+			return cast<T>();
+		}
+
+		/*
+		 * Access a table value using a key.
+		 * May invoke metamethods.
+		 */
+		template <typename T>
+		Proxy operator[] (T key) const {
+			return LuaRef(*this)[key];
+		}
+
+		int length() const {
+			push(); // push 1
+			lua_len(m_L, -1); // push 1
+			int len = luaL_checkinteger(m_L, -1);
+			lua_pop(m_L, 2); // pop 2
+			return len;
+		}
+
+		std::string tostring() const {
+			lua_getglobal(m_L, "tostring");
+			push();
+			lua_call(m_L, 1, 1);
+			const char *str = lua_tostring(m_L, 1);
+			lua_pop(m_L, 1);
+			return std::string(str);
+		}
+
 	private:
 		/*
 		 * Copy is NOT allowed.
 		 */
 		Proxy(const Proxy &other);
-		const Proxy& operator= (const Proxy &other); // TODO t["a"] = t["b"]
+
 	};
 
 private:
@@ -86,6 +174,21 @@ private:
 		} else {
 			return LUA_REFNIL;
 		}
+	}
+
+	/*
+	 * Push the object onto the Lua stack
+	 */
+	void push() const {
+		lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_ref);
+	}
+
+	/*
+	 * Pop the top of Lua stack and assign the ref to this->m_ref
+	 */
+	void pop() {
+		luaL_unref(m_L, LUA_REGISTRYINDEX, m_ref);
+		m_ref = luaL_ref(m_L, LUA_REGISTRYINDEX);
 	}
 
 public:
@@ -166,21 +269,6 @@ public:
 	}
 
 	/*
-	 * Push the object onto the Lua stack
-	 */
-	void push() const {
-		lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_ref);
-	}
-
-	/*
-	 * Pop the top of Lua stack and assign the ref to this->m_ref
-	 */
-	void pop() {
-		luaL_unref(m_L, LUA_REGISTRYINDEX, m_ref);
-		m_ref = luaL_ref(m_L, LUA_REGISTRYINDEX);
-	}
-
-	/*
 	 * Return lua_type
 	 */
 	int type() const {
@@ -251,7 +339,8 @@ public:
 		return Proxy(m_L, m_ref);
 	}
 
-	LuaRef const operator() () const {
+	template <typename... Args>
+	LuaRef const operator() (Args... args) const {
 		// TODO
 	}
 
@@ -267,6 +356,14 @@ LuaRef getGlobal(lua_State *L, const char *name) {
 template<> struct LuaStack<Nil> {
 	static inline void push(lua_State *L, Nil) {
 		lua_pushnil(L);
+	}
+};
+
+
+template<> struct LuaStack<LuaRef::Proxy> {
+	static inline void push(lua_State *L, const LuaRef::Proxy &v) {
+		assert(equalstates(L, v.state()));
+		v.push();
 	}
 };
 

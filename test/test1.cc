@@ -1,26 +1,4 @@
-#include <iostream>
-
-#include "../luacapi/lua.hpp"
-#include "../luabacc/luabacc.h"
-#include "../luabacc/dump.h"
-using namespace luabacc;
-
-void func(lua_State *L);
-
-
-int main() {
-	lua_State *L = luaS_newstate();
-	try {
-		func(L);
-	} catch (std::string e) {
-		std::cerr << e << std::endl;
-	}
-	std::cout << "check stack: " << std::endl;
-	std::cout << dumpLuaState(L) << std::endl;
-	luaS_close(L);
-	return 0;
-}
-
+#include "base.h"
 
 void func(lua_State *L) {
 	luaS_dofile(L, "test1.lua");
@@ -43,8 +21,10 @@ void func(lua_State *L) {
 	std::cout << v.tostring() << std::endl;
 	v = getGlobal(L, "t");
 	std::cout << v.tostring() << std::endl;
-	std::cout << LuaRef(v["a"]).cast<std::string>() << std::endl;
-	v["a"] = "zxc";
-	std::cout << LuaRef(v["a"]).cast<std::string>() << std::endl;
+	v["a"] = "abc";
+	std::cout << v["a"].cast<std::string>() << std::endl;
+	v["a"] = v["b"];
+	std::cout << v["a"].cast<std::string>() << std::endl;
+	std::cout << v["b"].cast<std::string>() << std::endl;
 }
 
