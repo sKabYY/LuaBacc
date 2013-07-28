@@ -11,8 +11,11 @@ struct Nil {};
 class LuaRef {
 
 	class Proxy;
+	friend class Proxy;
 	friend struct LuaStack<LuaRef>;
 	friend struct LuaStack<Proxy>;
+	friend LuaRef getGlobal(lua_State*, const char*);
+	friend std::ostream& operator<< (std::ostream &os, const LuaRef::Proxy &v);
 
 private:
 
@@ -138,6 +141,14 @@ private:
 			return LuaRef(*this)[key];
 		}
 
+		template <typename... Args>
+		LuaRef const operator() (Args... args) const {
+			push();
+			int nargs = pushArgs(m_L, args...);
+			luaS_pcall(m_L, nargs, 1);
+			return popLuaRef(m_L);
+		}
+
 		int length() const {
 			push(); // push 1
 			lua_len(m_L, -1); // push 1
@@ -150,9 +161,9 @@ private:
 			lua_getglobal(m_L, "tostring");
 			push();
 			lua_call(m_L, 1, 1);
-			const char *str = lua_tostring(m_L, 1);
+			std::string str = lua_tostring(m_L, 1);
 			lua_pop(m_L, 1);
-			return std::string(str);
+			return str;
 		}
 
 	private:
@@ -166,6 +177,23 @@ private:
 private:
 	lua_State *m_L;
 	int m_ref;
+
+	static int pushArgs(lua_State *L) {
+		return 0;
+	}
+
+	template <typename Head, typename... Args>
+	static int pushArgs(lua_State *L, Head h, Args... args) {
+		LuaStack<Head>::push(L, h);
+		int nargs = 1 + pushArgs(L, args...);
+		return nargs;
+	}
+
+	static inline LuaRef popLuaRef(lua_State *L) {
+		LuaRef v(L);
+		v.pop();
+		return v;
+	}
 
 	int createRef() const {
 		if (m_ref != LUA_REFNIL) {
@@ -189,13 +217,6 @@ private:
 	void pop() {
 		luaL_unref(m_L, LUA_REGISTRYINDEX, m_ref);
 		m_ref = luaL_ref(m_L, LUA_REGISTRYINDEX);
-	}
-
-public:
-	static inline LuaRef popLuaRef(lua_State *L) {
-		LuaRef v(L);
-		v.pop();
-		return v;
 	}
 
 public:
@@ -259,9 +280,9 @@ public:
 		lua_getglobal(m_L, "tostring");
 		push();
 		lua_call(m_L, 1, 1);
-		const char *str = lua_tostring(m_L, 1);
+		std::string str = lua_tostring(m_L, 1);
 		lua_pop(m_L, 1);
-		return std::string(str);
+		return str;
 	}
 
 	lua_State* state() const {
@@ -341,7 +362,10 @@ public:
 
 	template <typename... Args>
 	LuaRef const operator() (Args... args) const {
-		// TODO
+		push();
+		int nargs = pushArgs(m_L, args...);
+		luaS_pcall(m_L, nargs, 1);
+		return popLuaRef(m_L);
 	}
 
 };
@@ -378,4 +402,42 @@ template<> struct LuaStack<LuaRef> {
 		return LuaRef::popLuaRef(L);
 	}
 };
+
+
+void printLuaRef(std::ostream &os, const LuaRef &v) {
+	int type = v.type();
+	switch (type) {
+	case LUA_TNIL:
+		os << "nil";
+		break;
+	case LUA_TNUMBER:
+		os << v.cast<lua_Number>();
+		break;
+	case LUA_TBOOLEAN:
+		os << (v.cast<bool>() ? "true" : "false");
+		break;
+	case LUA_TSTRING:
+		os << '"' << v.cast<std::string>() << '"';
+		break;
+	case LUA_TTABLE:
+	case LUA_TFUNCTION:
+	case LUA_TUSERDATA:
+	case LUA_TTHREAD:
+	case LUA_TLIGHTUSERDATA:
+		os << v.tostring();
+	default:
+		os << "unknown";
+		break;
+	}
+}
+
+inline std::ostream& operator<< (std::ostream &os, const LuaRef &v) {
+	printLuaRef(os, v);
+	return os;
+}
+
+inline std::ostream& operator<< (std::ostream &os, const LuaRef::Proxy &v) {
+	printLuaRef(os, LuaRef(v));
+	return os;
+}
 
