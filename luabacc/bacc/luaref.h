@@ -425,6 +425,7 @@ void printLuaRef(std::ostream &os, const LuaRef &v) {
 	case LUA_TTHREAD:
 	case LUA_TLIGHTUSERDATA:
 		os << v.tostring();
+		break;
 	default:
 		os << "unknown";
 		break;
