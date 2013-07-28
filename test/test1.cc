@@ -43,6 +43,8 @@ void func(lua_State *L) {
 	std::cout << v.tostring() << std::endl;
 	v = getGlobal(L, "t");
 	std::cout << v.tostring() << std::endl;
-	std::cout << v["a"].cast<std::string>() << std::endl;
+	std::cout << LuaRef(v["a"]).cast<std::string>() << std::endl;
+	v["a"] = "zxc";
+	std::cout << LuaRef(v["a"]).cast<std::string>() << std::endl;
 }
 
