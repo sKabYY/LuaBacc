@@ -3,7 +3,7 @@
 template <typename T> struct LuaStack;
 
 #define LUASTACK_PROTOTYPE(T, _push, luaT, _check) \
-	template<> struct LuaStack<T> { \
+	template <> struct LuaStack<T> { \
 		static inline void push(lua_State *L, T value) { \
 			_push(L, static_cast<luaT>(value)); \
 		} \
@@ -19,7 +19,7 @@ LUASTACK_PROTOTYPE(double, lua_pushnumber, lua_Number, luaL_checknumber);
 LUASTACK_PROTOTYPE(bool, lua_pushboolean, int, lua_toboolean);
 
 
-template<> struct LuaStack<const char*> {
+template <> struct LuaStack<const char*> {
 	static inline void push(lua_State *L, const char *str) {
 		if (str != 0) {
 			lua_pushstring(L, str);
@@ -33,7 +33,7 @@ template<> struct LuaStack<const char*> {
 };
 
 
-template<> struct LuaStack<std::string> {
+template <> struct LuaStack<std::string> {
 	static inline void push(lua_State *L, std::string str) {
 		lua_pushstring(L, str.c_str());
 	}

@@ -12,6 +12,7 @@ class LuaRef {
 
 	class Proxy;
 	friend class Proxy;
+	friend class Iterator;
 	friend struct LuaStack<LuaRef>;
 	friend struct LuaStack<Proxy>;
 	friend LuaRef getGlobal(lua_State*, const char*);
@@ -142,7 +143,7 @@ private:
 		}
 
 		template <typename... Args>
-		LuaRef const operator() (Args... args) const {
+		LuaRef operator() (Args... args) const {
 			push();
 			int nargs = pushArgs(m_L, args...);
 			luaS_pcall(m_L, nargs, 1);
@@ -361,7 +362,7 @@ public:
 	}
 
 	template <typename... Args>
-	LuaRef const operator() (Args... args) const {
+	LuaRef operator() (Args... args) const {
 		push();
 		int nargs = pushArgs(m_L, args...);
 		luaS_pcall(m_L, nargs, 1);
@@ -377,14 +378,14 @@ LuaRef getGlobal(lua_State *L, const char *name) {
 }
 
 
-template<> struct LuaStack<Nil> {
+template <> struct LuaStack<Nil> {
 	static inline void push(lua_State *L, Nil) {
 		lua_pushnil(L);
 	}
 };
 
 
-template<> struct LuaStack<LuaRef::Proxy> {
+template <> struct LuaStack<LuaRef::Proxy> {
 	static inline void push(lua_State *L, const LuaRef::Proxy &v) {
 		assert(equalstates(L, v.state()));
 		v.push();
@@ -392,7 +393,7 @@ template<> struct LuaStack<LuaRef::Proxy> {
 };
 
 
-template<> struct LuaStack<LuaRef> {
+template <> struct LuaStack<LuaRef> {
 	static inline void push(lua_State *L, const LuaRef &v) {
 		assert(equalstates(L, v.state()));
 		v.push();
