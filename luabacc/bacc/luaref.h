@@ -31,14 +31,17 @@ private:
 
 	private:
 		/*
-		 * The table is in the registry,
-		 * and the key is at the top of the stack
-		 * The key is popped off the stack
+		 * The key is on the top of stack,
+		 * and the table is just below the top.
+		 * Stack:
+		 *   [TOP] key
+		 *   [ 2 ] table
+		 * The key and the table is popped off the stack
 		 */
-		Proxy(lua_State *L, int tableRef)
-			: m_L(L),
-				m_tableRef(tableRef),
-				m_keyRef(luaL_ref(L, LUA_REGISTRYINDEX)) {
+		Proxy(lua_State *L)
+			: m_L(L) {
+			m_keyRef = luaL_ref(L, LUA_REGISTRYINDEX);
+			m_tableRef = luaL_ref(L, LUA_REGISTRYINDEX);
 		}
 
 
@@ -68,6 +71,7 @@ private:
 
 	public:
 		~Proxy() {
+			luaL_unref(m_L, LUA_REGISTRYINDEX, m_tableRef);
 			luaL_unref(m_L, LUA_REGISTRYINDEX, m_keyRef);
 		}
 
@@ -139,7 +143,9 @@ private:
 		 */
 		template <typename T>
 		Proxy operator[] (T key) const {
-			return LuaRef(*this)[key];
+			push();
+			LuaStack<T>::push(m_L, key);
+			return Proxy(m_L);
 		}
 
 		template <typename... Args>
@@ -357,8 +363,9 @@ public:
 	 */
 	template <typename T>
 	Proxy operator[] (T key) {
+		push();
 		LuaStack<T>::push(m_L, key);
-		return Proxy(m_L, m_ref);
+		return Proxy(m_L);
 	}
 
 	template <typename... Args>
@@ -372,7 +379,7 @@ public:
 };
 
 
-LuaRef getGlobal(lua_State *L, const char *name) {
+inline LuaRef getGlobal(lua_State *L, const char *name) {
 	lua_getglobal(L, name);
 	return LuaRef::popLuaRef(L);
 }
@@ -405,7 +412,7 @@ template <> struct LuaStack<LuaRef> {
 };
 
 
-void printLuaRef(std::ostream &os, const LuaRef &v) {
+inline void printLuaRef(std::ostream &os, const LuaRef &v) {
 	int type = v.type();
 	switch (type) {
 	case LUA_TNIL:
