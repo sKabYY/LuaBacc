@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CXXFLAGS='-g -std=c++0x -L../luacapi/'
+CXXFLAGS='-g -Wall -Wextra -std=c++0x -L../luacapi/'
 
 if [ $# -eq 0 ]
 then
@@ -14,6 +14,8 @@ echo $cmd
 $cmd
 if [ $? -eq 0 ]
 then
+	echo "========"
+	echo
 	./a.out
 else
 	exit $?

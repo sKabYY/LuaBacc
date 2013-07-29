@@ -148,6 +148,12 @@ private:
 			return Proxy(m_L);
 		}
 
+		LuaRef operator() () const {
+			push();
+			luaS_pcall(m_L, 0, 1);
+			return popLuaRef(m_L);
+		}
+
 		template <typename... Args>
 		LuaRef operator() (Args... args) const {
 			push();
@@ -185,8 +191,10 @@ private:
 	lua_State *m_L;
 	int m_ref;
 
-	static int pushArgs(lua_State *L) {
-		return 0;
+	template <typename T>
+	static int pushArgs(lua_State *L, T t) {
+		LuaStack<T>::push(L, t);
+		return 1;
 	}
 
 	template <typename Head, typename... Args>
@@ -366,6 +374,12 @@ public:
 		push();
 		LuaStack<T>::push(m_L, key);
 		return Proxy(m_L);
+	}
+
+	LuaRef operator() () const {
+		push();
+		luaS_pcall(m_L, 0, 1);
+		return popLuaRef(m_L);
 	}
 
 	template <typename... Args>

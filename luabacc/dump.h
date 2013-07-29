@@ -1,10 +1,14 @@
+/*
+ * Include this file only when debugging
+ */
+
 #ifndef LUABACC_DUMP_H
 #define LUABACC_DUMP_H
 
 #include <sstream>
 #include <string>
 
-std::string dumpLuaState(lua_State *L) {
+inline std::string dumpLuaState(lua_State *L) {
 	std::stringstream ostr;
 	int i;
 	int top = lua_gettop(L);
