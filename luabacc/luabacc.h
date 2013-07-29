@@ -10,6 +10,7 @@ namespace luabacc {
 #include "bacc/luastack.h"
 #include "bacc/luaref.h"
 #include "bacc/iterator.h"
+#include "bacc/luastate.h"
 
 }
 
