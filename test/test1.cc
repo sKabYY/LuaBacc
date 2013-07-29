@@ -21,10 +21,15 @@ void func(lua_State *L) {
 	std::cout << v.tostring() << std::endl;
 	v = getGlobal(L, "t");
 	std::cout << v.tostring() << std::endl;
+	std::cout << v["a"].cast<std::string>() << std::endl;
 	v["a"] = "abc";
 	std::cout << v["a"].cast<std::string>() << std::endl;
 	v["a"] = v["b"];
 	std::cout << v["a"].cast<std::string>() << std::endl;
 	std::cout << v["b"].cast<std::string>() << std::endl;
+	std::cout << "###" << std::endl;
+	std::cout << v["c"]["x"] << std::endl;
+	i = v["c"]["y"];
+	std::cout << i << std::endl;
 }
 
