@@ -107,14 +107,14 @@ private:
 			return type;
 		}
 
-    inline bool isNil() const {return type() == LUA_TNIL;}
-    inline bool isNumber() const {return type() == LUA_TNUMBER;}
-    inline bool isString() const {return type() == LUA_TSTRING;}
-    inline bool isTable() const {return type() == LUA_TTABLE;}
-    inline bool isFunction() const {return type() == LUA_TFUNCTION;}
-    inline bool isUserdata() const {return type() == LUA_TUSERDATA;}
-    inline bool isThread() const {return type() == LUA_TTHREAD;}
-    inline bool isLightUserdata() const {return type() == LUA_TLIGHTUSERDATA;}
+    bool isNil() const {return type() == LUA_TNIL;}
+    bool isNumber() const {return type() == LUA_TNUMBER;}
+    bool isString() const {return type() == LUA_TSTRING;}
+    bool isTable() const {return type() == LUA_TTABLE;}
+    bool isFunction() const {return type() == LUA_TFUNCTION;}
+    bool isUserdata() const {return type() == LUA_TUSERDATA;}
+    bool isThread() const {return type() == LUA_TTHREAD;}
+    bool isLightUserdata() const {return type() == LUA_TLIGHTUSERDATA;}
 
 		/*
 		 * Explicit conversion.
@@ -133,7 +133,7 @@ private:
 		 * May invoke metamethods.
 		 */
 		template <typename T>
-		inline operator T () const {
+		operator T () const {
 			return cast<T>();
 		}
 
@@ -204,7 +204,7 @@ private:
 		return nargs;
 	}
 
-	static inline LuaRef popLuaRef(lua_State *L) {
+	static LuaRef popLuaRef(lua_State *L) {
 		LuaRef v(L);
 		v.pop();
 		return v;
@@ -319,14 +319,14 @@ public:
 		return type;
 	}
 
-	inline bool isNil() const {return type() == LUA_TNIL;}
-	inline bool isNumber() const {return type() == LUA_TNUMBER;}
-	inline bool isString() const {return type() == LUA_TSTRING;}
-	inline bool isTable() const {return type() == LUA_TTABLE;}
-	inline bool isFunction() const {return type() == LUA_TFUNCTION;}
-	inline bool isUserdata() const {return type() == LUA_TUSERDATA;}
-	inline bool isThread() const {return type() == LUA_TTHREAD;}
-	inline bool isLightUserdata() const {return type() == LUA_TLIGHTUSERDATA;}
+	bool isNil() const {return type() == LUA_TNIL;}
+	bool isNumber() const {return type() == LUA_TNUMBER;}
+	bool isString() const {return type() == LUA_TSTRING;}
+	bool isTable() const {return type() == LUA_TTABLE;}
+	bool isFunction() const {return type() == LUA_TFUNCTION;}
+	bool isUserdata() const {return type() == LUA_TUSERDATA;}
+	bool isThread() const {return type() == LUA_TTHREAD;}
+	bool isLightUserdata() const {return type() == LUA_TLIGHTUSERDATA;}
 
 	/*
 	 * Explicit conversion
@@ -340,7 +340,7 @@ public:
 	}
 
 	template <typename T>
-	inline operator T () const {
+	operator T () const {
 		return cast<T>();
 	}
 
@@ -400,14 +400,14 @@ inline LuaRef getGlobal(lua_State *L, const char *name) {
 
 
 template <> struct LuaStack<Nil> {
-	static inline void push(lua_State *L, Nil) {
+	static void push(lua_State *L, Nil) {
 		lua_pushnil(L);
 	}
 };
 
 
 template <> struct LuaStack<LuaRef::Proxy> {
-	static inline void push(lua_State *L, const LuaRef::Proxy &v) {
+	static void push(lua_State *L, const LuaRef::Proxy &v) {
 		assert(equalstates(L, v.state()));
 		v.push();
 	}
@@ -415,11 +415,11 @@ template <> struct LuaStack<LuaRef::Proxy> {
 
 
 template <> struct LuaStack<LuaRef> {
-	static inline void push(lua_State *L, const LuaRef &v) {
+	static void push(lua_State *L, const LuaRef &v) {
 		assert(equalstates(L, v.state()));
 		v.push();
 	}
-	static inline LuaRef get(lua_State *L, int index) {
+	static LuaRef get(lua_State *L, int index) {
 		lua_pushvalue(L, index);
 		return LuaRef::popLuaRef(L);
 	}

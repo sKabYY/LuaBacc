@@ -45,15 +45,15 @@ public:
 		}
 	}
 
-	inline bool isNil() const {
+	bool isNil() const {
 		return m_key.isNil();
 	}
 
-	inline LuaRef key() const {
+	LuaRef key() const {
 		return m_key;
 	}
 
-	inline LuaRef value() const {
+	LuaRef value() const {
 		return m_value;
 	}
 

@@ -4,10 +4,10 @@ template <typename T> struct LuaStack;
 
 #define LUASTACK_PROTOTYPE(T, _push, _get) \
 	template <> struct LuaStack<T> { \
-		static inline void push(lua_State *L, T value) { \
+		static void push(lua_State *L, T value) { \
 			_push; \
 		} \
-		static inline T get(lua_State *L, T index) { \
+		static T get(lua_State *L, int index) { \
 			return _get; \
 		} \
 	}
@@ -34,23 +34,23 @@ LUASTACK_PROTOTYPE(bool,
 );
 
 template <> struct LuaStack<std::string> {
-	static inline void push(lua_State *L, std::string value) {
+	static void push(lua_State *L, std::string value) {
 		lua_pushstring(L, value.c_str());
 	}
-	static inline std::string get(lua_State *L, int index) {
+	static std::string get(lua_State *L, int index) {
 		return std::string(luaL_checkstring(L, index));
 	}
 };
 
 template <> struct LuaStack<const char*> {
-	static inline void push(lua_State *L, const char *value) {
+	static void push(lua_State *L, const char *value) {
 		if (value != 0) {
 			lua_pushstring(L, value);
 		} else {
 			lua_pushnil(L);
 		}
 	}
-	static inline const char* get(lua_State *L, int index) {
+	static const char* get(lua_State *L, int index) {
 		return lua_isnil(L, index) ? 0 : luaL_checkstring(L, index);
 	}
 };
