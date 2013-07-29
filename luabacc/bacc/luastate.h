@@ -12,7 +12,7 @@ public:
 	}
 
 	~LuaState() {
-		luaS_close(L);
+		luaS_close(m_L);
 	}
 
 	lua_State* state() const {
@@ -24,7 +24,7 @@ public:
 	}
 
 	LuaRef getGlobal(const char *name) {
-		return getGlobal(m_L, name);
+		return luabacc::getGlobal(m_L, name);
 	}
 
 	LuaRef newNil() {
