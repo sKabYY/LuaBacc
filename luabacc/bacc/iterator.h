@@ -4,7 +4,7 @@
 class Iterator {
 private:
 	/* assert m_L == m_table.state() == m_key.state() == m_value.state() */
-	lua_State *m_L;
+	lua_State* m_L;
 	LuaRef m_table;
 	LuaRef m_key;
 	LuaRef m_value;
@@ -23,7 +23,7 @@ private:
 	}
 
 public:
-	explicit Iterator(LuaRef table)
+	explicit Iterator(LuaRef const& table)
 		: m_L(table.state()),
 			m_table(table),
 			m_key(table.state()),
