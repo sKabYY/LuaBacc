@@ -50,6 +50,7 @@ inline void luaS_rawget(lua_State *L, const char *key) {
 /*
  * t[key] = v, where v is the value at the top of the stack
  * and t is the value just below the top.
+ * This function will pop v from the stack.
  * Bypassing metamethods.
  */
 inline void luaS_rawset(lua_State *L, const char *key) {

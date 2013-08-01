@@ -4,48 +4,56 @@
 using namespace std;
 
 
-int counter() {
-	static int i = 0;
-	return ++i;
-}
-
-
-template <typename R>
-struct Invoke {
-	template <typename... Ps, typename H, typename... Args>
-	static R call(R (*fp)(Ps..., H, Args...), Args... as) {
-		int c = counter();
-		const int N = sizeof...(Ps);
-		if (N == 0) {
-			return fp(c, as...);
-		} else {
-			return Invoke<R>::call<Ps..., H, Args...>(fp, c, as...);
-		}
-	}
-};
-
-
-template <typename FP, typename D=FP, FP fp=NULL>
-struct FuncProxy {};
-
-
-template <typename R, typename... Ps, typename FP, FP fp>
-struct FuncProxy <R (*)(Ps...), FP, fp> {
-	static R call() {
-		const int N = sizeof...(Ps);
-		return Invoke<R>::call<Ps>(fp);
-	}
-};
-
-
 void func(int i1, int i2) {
 	cout << i1 << endl;
 	cout << i2 << endl;
 }
 
 
+int counter() {
+	static int i = 0;
+	return ++i;
+}
+
+
+template <typename... T>
+struct Caller;
+
+template <>
+struct Caller<> {
+	template <typename... U>
+	static void call(U... u) {
+		func(u...);
+	}
+};
+
+template <typename H, typename... T>
+struct Caller<H, T...> {
+	template <typename... U>
+	static void call(U... u) {
+		H h = counter();
+		Caller<T...>::call(u..., h);
+	}
+};
+
+template <typename FP>
+struct CFuncWrapper;
+
+template <typename R, typename... Ps>
+struct CFuncWrapper<R (*)(Ps...)> {
+	static void call() {
+		Caller<Ps...>::call();
+	}
+};
+
+template <typename FP>
+static void deffunction(FP fp) {
+	CFuncWrapper<FP>::call();
+}
+
+
 int main() {
-	FuncProxy<void (*)(int, int), void (*)(int, int), func>::call();
+	deffunction(func);
 	return 0;
 }
 

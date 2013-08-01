@@ -15,9 +15,16 @@ void luafunc(int i, double d) {
 }
 
 
+void luafunc2(int a, int b) {
+	cout << "a*b=" << a * b << endl;
+}
+
+
 void func(lua_State* L) {
-	deffunction("func", &luafunc);
+	TestModule(L).deffunction("func", &luafunc);
 	luaL_dostring(L, "func(1, 2.3)");
+	TestModule(L, "space").deffunction("func", &luafunc2);
+	luaL_dostring(L, "space.func(2, 3)");
 }
 
 
