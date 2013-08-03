@@ -6,6 +6,12 @@
 using namespace luabacc;
 
 
+inline std::string getStackEmptyMsg() {
+	static std::string EMPTY_LUA_STACK_MSG = "top=0:\n";
+	return EMPTY_LUA_STACK_MSG;
+}
+
+
 int main() {
 	LuaState state;
 	try {
@@ -14,15 +20,8 @@ int main() {
 		std::cerr << e << std::endl;
 	}
 	LuaRef v = state.getGlobal("a");
-	std::cout << v << std::endl;
-	v = state.getGlobal("t");
-	std::cout << v << std::endl;
-	for (Iterator iter(v); !iter.isNil(); ++iter) {
-		std::cout << iter.key() << "=" << iter.value() << std::endl;
-	}
-	std::cout << "t.c.x=" << v["c"]["x"] << std::endl;
-	std::cout << "check stack: " << std::endl;
-	std::cout << dumpLuaState(state.state()) << std::endl;
+	assert(v.tostring() == "abc");
+	assert(dumpLuaState(state.state()) == getStackEmptyMsg()); // Check stack
 	return 0;
 }
 

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+CXXFLAGS='-g -Wall -Wextra -std=c++0x -L../luacapi/'
+
+if [ $# -eq 0 ]
+then
+	echo 'Error: missing arguement'
+	exit 1
+fi
+
+# compile
+cmd="g++ $CXXFLAGS test$1.cc -llua -ldl"
+echo $cmd
+$cmd
+if [ $? -eq 0 ]
+then
+	echo "========"
+	echo
+	./a.out
+else
+	exit $?
+fi
+

@@ -1,10 +1,10 @@
 table = setmetatable({}, {
 	__index = function(t, k)
-		print('__index: ' .. tostring(k))
+		index_msg =  '__index: ' .. tostring(k)
 		return nil
 	end,
 	__newindex = function(t, k, v)
-		print('__newindex: ' .. tostring(k) .. ', ' .. tostring(v))
+		newindex_msg = '__newindex: ' .. tostring(k) .. ', ' .. tostring(v)
 	end,
 })
 
