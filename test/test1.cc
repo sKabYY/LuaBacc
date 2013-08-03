@@ -1,35 +1,34 @@
 #include "base.h"
+#include <cstring>
+
 
 void func(lua_State *L) {
 	luaS_dofile(L, "test1.lua");
 	LuaRef v(L);
 	v = getGlobal(L, "a");
 	const char *s = v;
-	std::cout << s << std::endl;
-	std::cout << v.tostring() << std::endl;
+	assert(!strcmp(s, "abc"));
+	assert(v.tostring() == "abc");
 	v = getGlobal(L, "b");
 	bool b = v;
-	std::cout << b << std::endl;
-	std::cout << v.tostring() << std::endl;
+	assert(b);
+	assert(v.tostring() == "true");
 	v = getGlobal(L, "c");
 	int i = v;
-	std::cout << i << std::endl;
-	std::cout << v.tostring() << std::endl;
+	assert(i == 42);
+	assert(v.tostring() == "42");
 	v = getGlobal(L, "d");
 	double d = v;
-	std::cout << d << std::endl;
-	std::cout << v.tostring() << std::endl;
+	assert(d == 3.14159265);
+	assert(v.tostring() == "3.14159265");
 	v = getGlobal(L, "t");
-	std::cout << v.tostring() << std::endl;
-	std::cout << v["a"].cast<std::string>() << std::endl;
+	assert(v["a"].cast<std::string>() == "a");
 	v["a"] = "abc";
-	std::cout << v["a"].cast<std::string>() << std::endl;
+	assert(v["a"].cast<std::string>() == "abc");
 	v["a"] = v["b"];
-	std::cout << v["a"].cast<std::string>() << std::endl;
-	std::cout << v["b"].cast<std::string>() << std::endl;
-	std::cout << "###" << std::endl;
-	std::cout << v["c"]["x"] << std::endl;
+	assert(v["a"].cast<std::string>() == v["b"].cast<std::string>());
+	assert(v["c"]["x"].cast<int>() == 12);
 	i = v["c"]["y"];
-	std::cout << i << std::endl;
+	assert(i == 21);
 }
 
