@@ -1,4 +1,4 @@
-#include "base.h"
+#include "base_wrapper.h"
 
 
 int f1(int a, int b) {
@@ -11,14 +11,14 @@ void f2() {
 }
 
 
-void func(lua_State *L) {
-	module(L)
+void func(LuaState& state) {
+	state.module()
 		.def("f1", &f1)
 		.namespace_("ns")
 			.def("f2", &f2)
 		.end();
-	luaS_dostring(L, "a = f1(1, 2)\nns.f2()\n");
-	int i = getGlobal(L, "a");
+	state.dostring("a = f1(1, 2)\nns.f2()\n");
+	int i = state.getGlobal("a");
 	assert(i == 3);
 	assert(g_msg == "This is f2.");
 }
