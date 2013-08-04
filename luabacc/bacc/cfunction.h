@@ -81,7 +81,7 @@ namespace __bacc {
 		static int call(lua_State* L, U... u) {
 			const int n = static_cast<int>(2 + sizeof...(U));
 			H h = __bacc::LuaStack<H>::get(L, n);
-			return RecursiveCaller<MFP, R, T...>::call(L, u..., h);
+			return RecursiveMemberCaller<MFP, R, C, T...>::call(L, u..., h);
 		}
 	};
 

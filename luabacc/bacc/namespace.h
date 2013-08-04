@@ -63,10 +63,16 @@ namespace __bacc {
 			template <typename... Ps>
 			Class<T>& def(constructor<Ps...>) {
 				lua_newtable(m_L);
-				lua_pushvalue(m_L, -2);
-				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 1);
+				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
 				luaS_rawset(m_L, "__call");
 				lua_setmetatable(m_L, -2);
+				return *this;
+			}
+
+			template <typename... Ps>
+			Class<T>& def(char const* name, constructor<Ps...>) {
+				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
+				luaS_rawset(m_L, name);
 				return *this;
 			}
 
