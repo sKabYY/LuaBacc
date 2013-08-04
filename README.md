@@ -19,6 +19,9 @@ Support
 - Calling lua function from C++. Supporting variable arguements.
 - Iterating lua table.
 
+###Accessing C++ from lua
+- Calling C++ function from lua. Supporting variable arguements.
+
 ###TODO
 - There is always something to be done.
 
