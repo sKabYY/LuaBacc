@@ -5,6 +5,15 @@
 #include "../luabacc/dump.h"
 using namespace luabacc;
 
+
+inline bool exp_with_msg(bool exp, std::string msg) {
+	if (!exp) {
+		std::cout << msg << std::endl;
+	}
+	return exp;
+}
+
+
 void func(lua_State *L);
 
 
@@ -27,7 +36,9 @@ int main() {
 	} catch (std::string e) {
 		std::cerr << e << std::endl;
 	}
-	assert(dumpLuaState(L) == getStackEmptyMsg()); // Check stack
+	std::string dump_msg = dumpLuaState(L);
+	// Check stack
+	assert(exp_with_msg(dump_msg == getStackEmptyMsg(), dump_msg));
 	luaS_close(L);
 	return 0;
 }

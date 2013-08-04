@@ -59,5 +59,5 @@ namespace __bacc {
 
 #undef LUASTACK_PROTOTYPE
 
-};
+}
 

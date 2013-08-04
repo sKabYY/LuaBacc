@@ -15,7 +15,6 @@ class LuaRef {
 	friend class Iterator;
 	friend struct __bacc::LuaStack<LuaRef>;
 	friend struct __bacc::LuaStack<Proxy>;
-	friend LuaRef getGlobal(lua_State*, char const*);
 	friend std::ostream& operator<< (std::ostream&, LuaRef::Proxy const&);
 
 private:
@@ -390,12 +389,16 @@ public:
 		return popLuaRef(m_L);
 	}
 
+	static LuaRef getGlobal(lua_State* L, char const* name) {
+		lua_getglobal(L, name);
+		return LuaRef::popLuaRef(L);
+	}
+
 };
 
 
 inline LuaRef getGlobal(lua_State* L, char const* name) {
-	lua_getglobal(L, name);
-	return LuaRef::popLuaRef(L);
+	return LuaRef::getGlobal(L, name);
 }
 
 
@@ -427,7 +430,7 @@ namespace __bacc {
 		}
 	};
 
-};
+}
 
 
 inline void printLuaRef(std::ostream& os, LuaRef const& v) {

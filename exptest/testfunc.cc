@@ -21,10 +21,12 @@ void luafunc2(int a, int b) {
 
 
 void func(lua_State* L) {
-	TestModule(L).deffunction("func", &luafunc);
+	TestModule(L).def("func", &luafunc);
 	luaL_dostring(L, "func(1, 2.3)");
-	TestModule(L, "space").deffunction("func", &luafunc2);
+	TestModule(L, "space").def("func", &luafunc2);
 	luaL_dostring(L, "space.func(2, 3)");
+	int i = 0;
+	TestModule(L).def("a", i);
 }
 
 
