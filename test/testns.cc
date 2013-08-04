@@ -17,7 +17,7 @@ void func(lua_State *L) {
 		.namespace_("ns")
 			.def("f2", &f2)
 		.end();
-	luaL_dostring(L, "a = f1(1, 2)\nns.f2()\n");
+	luaS_dostring(L, "a = f1(1, 2)\nns.f2()\n");
 	int i = getGlobal(L, "a");
 	assert(i == 3);
 	assert(g_msg == "This is f2.");
