@@ -19,7 +19,7 @@ struct Caller<FP, R> {
 	template <typename... U>
 	static int call(lua_State* L, U... u) {
 		FP const& fp = *static_cast<FP*>(lua_touserdata(L, lua_upvalueindex(1)));
-		LuaStack<R>::push(L, fp(u...));
+		__bacc::LuaStack<R>::push(L, fp(u...));
 		return 1;
 	}
 };
@@ -29,7 +29,7 @@ struct Caller<FP, R, H, T...> {
 	template <typename... U>
 	static int call(lua_State* L, U... u) {
 		const int n = -static_cast<int>(1 + sizeof...(u));
-		H h = LuaStack<H>::get(L, n);
+		H h = __bacc::LuaStack<H>::get(L, n);
 		return Caller<FP, R, T...>::call(L, h, u...);
 	}
 };
@@ -66,6 +66,20 @@ struct TestModule {
 
 	template <typename FP>
 	void deffunction(char const* name, FP fp) {
+		new (lua_newuserdata(m_L, sizeof(fp))) FP (fp);
+		lua_pushcclosure(m_L, &CFunc<FP>::call, 1);
+		luaS_rawset(m_L, name);
+	}
+
+	template <typename T>
+	void def(char const* name, T t) {
+		std::cout << "def T" << endl;
+	}
+
+	template <typename R, typename... Ps>
+	void def(char const* name, R (*fp)(Ps...)) {
+		typedef R (*FP)(Ps...);
+		std::cout << "def function" << std::endl;
 		new (lua_newuserdata(m_L, sizeof(fp))) FP (fp);
 		lua_pushcclosure(m_L, &CFunc<FP>::call, 1);
 		luaS_rawset(m_L, name);

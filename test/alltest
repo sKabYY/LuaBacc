@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 
 test_list = [
     '1',
@@ -8,6 +9,7 @@ test_list = [
     '3',
     'iter',
     'ls',
+    'ns',
 ]
 
 CXXFLAGS = '-g -Wall -Wextra -std=c++0x -L../luacapi/'
@@ -15,6 +17,9 @@ for testname in test_list:
     ccfn = 'test%s.cc' % testname
     cmd = 'g++ %s %s -llua -ldl && ./a.out' % (CXXFLAGS, ccfn)
     print cmd
-    os.system(cmd)
+    code = os.system(cmd)
+    if code != 0:
+        print 'Failed: %s (return code = %s)' % (ccfn, code)
+        sys.exit(code)
 
 print 'All testcases OK.'

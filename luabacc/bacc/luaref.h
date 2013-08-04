@@ -13,9 +13,8 @@ class LuaRef {
 	class Proxy;
 	friend class Proxy;
 	friend class Iterator;
-	friend struct LuaStack<LuaRef>;
-	friend struct LuaStack<Proxy>;
-	friend LuaRef getGlobal(lua_State*, char const*);
+	friend struct __bacc::LuaStack<LuaRef>;
+	friend struct __bacc::LuaStack<Proxy>;
 	friend std::ostream& operator<< (std::ostream&, LuaRef::Proxy const&);
 
 private:
@@ -27,7 +26,7 @@ private:
 	class Proxy {
 
 		friend class LuaRef;
-		friend struct LuaStack<Proxy>;
+		friend struct __bacc::LuaStack<Proxy>;
 
 	private:
 		/*
@@ -83,7 +82,7 @@ private:
 		Proxy& operator= (T v) {
 			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_tableRef);
 			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_keyRef);
-			LuaStack<T>::push(m_L, v);
+			__bacc::LuaStack<T>::push(m_L, v);
 			lua_settable(m_L, -3); // This may trgger the "newindex" event
 			lua_pop(m_L, 1);
 			return *this;
@@ -123,7 +122,7 @@ private:
 		template <typename T>
 		T cast() const {
 			push();
-			T t = LuaStack<T>::get(m_L, lua_gettop(m_L));
+			T t = __bacc::LuaStack<T>::get(m_L, lua_gettop(m_L));
 			lua_pop(m_L, 1);
 			return t;
 		}
@@ -144,7 +143,7 @@ private:
 		template <typename T>
 		Proxy operator[] (T key) const {
 			push();
-			LuaStack<T>::push(m_L, key);
+			__bacc::LuaStack<T>::push(m_L, key);
 			return Proxy(m_L);
 		}
 
@@ -193,13 +192,13 @@ private:
 
 	template <typename T>
 	static int pushArgs(lua_State* L, T t) {
-		LuaStack<T>::push(L, t);
+		__bacc::LuaStack<T>::push(L, t);
 		return 1;
 	}
 
 	template <typename Head, typename... Args>
 	static int pushArgs(lua_State* L, Head h, Args... args) {
-		LuaStack<Head>::push(L, h);
+		__bacc::LuaStack<Head>::push(L, h);
 		int nargs = 1 + pushArgs(L, args...);
 		return nargs;
 	}
@@ -243,7 +242,7 @@ public:
 	template <typename T>
 	LuaRef(lua_State* L, T v)
 		: m_L(L) {
-		LuaStack<T>::push(m_L, v);
+		__bacc::LuaStack<T>::push(m_L, v);
 		m_ref = luaL_ref(m_L, LUA_REGISTRYINDEX);
 	}
 	
@@ -268,7 +267,7 @@ public:
 	template <typename T>
 	LuaRef& operator= (T rhs) {
 		luaL_unref(m_L, LUA_REGISTRYINDEX, m_ref);
-		LuaStack<T>::push(m_L, rhs);
+		__bacc::LuaStack<T>::push(m_L, rhs);
 		m_ref = luaL_ref(m_L, LUA_REGISTRYINDEX);
 		return *this;
 	}
@@ -334,7 +333,7 @@ public:
 	template <typename T>
 	T cast() const {
 		push();
-		T t = LuaStack<T>::get(m_L, lua_gettop(m_L));
+		T t = __bacc::LuaStack<T>::get(m_L, lua_gettop(m_L));
 		lua_pop(m_L, 1);
 		return t;
 	}
@@ -359,7 +358,7 @@ public:
 	template <typename T>
 	LuaRef operator[] (T key) const {
 		push();
-		LuaStack<T>::push(m_L, key);
+		__bacc::LuaStack<T>::push(m_L, key);
 		lua_gettable(m_L, -2);
 		LuaRef v = LuaRef::popLuaRef(m_L);
 		lua_pop(m_L, 1);
@@ -372,7 +371,7 @@ public:
 	template <typename T>
 	Proxy operator[] (T key) const {
 		push();
-		LuaStack<T>::push(m_L, key);
+		__bacc::LuaStack<T>::push(m_L, key);
 		return Proxy(m_L);
 	}
 
@@ -390,40 +389,48 @@ public:
 		return popLuaRef(m_L);
 	}
 
+	static LuaRef getGlobal(lua_State* L, char const* name) {
+		lua_getglobal(L, name);
+		return LuaRef::popLuaRef(L);
+	}
+
 };
 
 
 inline LuaRef getGlobal(lua_State* L, char const* name) {
-	lua_getglobal(L, name);
-	return LuaRef::popLuaRef(L);
+	return LuaRef::getGlobal(L, name);
 }
 
 
-template <> struct LuaStack<Nil> {
-	static void push(lua_State* L, Nil) {
-		lua_pushnil(L);
-	}
-};
+namespace __bacc {
+
+	template <> struct LuaStack<Nil> {
+		static void push(lua_State* L, Nil) {
+			lua_pushnil(L);
+		}
+	};
 
 
-template <> struct LuaStack<LuaRef::Proxy> {
-	static void push(lua_State* L, LuaRef::Proxy const& v) {
-		assert(equalstates(L, v.state()));
-		v.push();
-	}
-};
+	template <> struct LuaStack<LuaRef::Proxy> {
+		static void push(lua_State* L, LuaRef::Proxy const& v) {
+			assert(equalstates(L, v.state()));
+			v.push();
+		}
+	};
 
 
-template <> struct LuaStack<LuaRef> {
-	static void push(lua_State* L, LuaRef const& v) {
-		assert(equalstates(L, v.state()));
-		v.push();
-	}
-	static LuaRef get(lua_State* L, int index) {
-		lua_pushvalue(L, index);
-		return LuaRef::popLuaRef(L);
-	}
-};
+	template <> struct LuaStack<LuaRef> {
+		static void push(lua_State* L, LuaRef const& v) {
+			assert(equalstates(L, v.state()));
+			v.push();
+		}
+		static LuaRef get(lua_State* L, int index) {
+			lua_pushvalue(L, index);
+			return LuaRef::popLuaRef(L);
+		}
+	};
+
+}
 
 
 inline void printLuaRef(std::ostream& os, LuaRef const& v) {
