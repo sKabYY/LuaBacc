@@ -10,6 +10,8 @@ test_list = [
     'iter',
     'ls',
     'ns',
+    'ns2',
+    'cls',
 ]
 
 CXXFLAGS = '-g -Wall -Wextra -std=c++0x -L../luacapi/'

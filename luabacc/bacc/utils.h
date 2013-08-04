@@ -19,6 +19,15 @@ inline void luaS_close(lua_State *L) {
 }
 
 
+inline void luaS_pcall(lua_State *L, int nargs=0, int nresults=0) {
+	if (lua_pcall(L, nargs, nresults, 0) != LUA_OK) {
+		std::string errstr = lua_tostring(L, -1);
+		lua_pop(L, 1);
+		throw errstr;
+	}
+}
+
+
 inline void luaS_dofile(lua_State *L, std::string path) {
 	if (luaL_dofile(L, path.c_str())) {
 		std::string errstr = lua_tostring(L, -1);
@@ -28,8 +37,8 @@ inline void luaS_dofile(lua_State *L, std::string path) {
 }
 
 
-inline void luaS_pcall(lua_State *L, int nargs=0, int nresults=0) {
-	if (lua_pcall(L, nargs, nresults, 0) != LUA_OK) {
+inline void luaS_dostring(lua_State *L, std::string content) {
+	if (luaL_dostring(L, content.c_str())) {
 		std::string errstr = lua_tostring(L, -1);
 		lua_pop(L, 1);
 		throw errstr;

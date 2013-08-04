@@ -14,7 +14,7 @@ inline bool exp_with_msg(bool exp, std::string msg) {
 }
 
 
-void func(lua_State *L);
+void func(LuaState& state);
 
 
 inline bool flt_equals(double a, double b) {
@@ -31,16 +31,15 @@ inline std::string getStackEmptyMsg() {
 
 int main() {
 	try {
-		lua_State *L = luaS_newstate();
+		LuaState state;
 		try {
-			func(L);
+			func(state);
 		} catch (std::string e) {
 			std::cerr << e << std::endl;
 		}
-		std::string dump_msg = dumpLuaState(L);
+		std::string dump_msg = dumpLuaState(state.state());
 		// Check stack
 		assert(exp_with_msg(dump_msg == getStackEmptyMsg(), dump_msg));
-		luaS_close(L);
 	} catch (std::string e) {
 		std::cerr << "Exception: " << e << std::endl;
 	}

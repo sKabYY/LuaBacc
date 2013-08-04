@@ -23,8 +23,16 @@ public:
 		luaS_dofile(m_L, path);
 	}
 
+	void dostring(std::string content) {
+		luaS_dostring(m_L, content);
+	}
+
 	LuaRef getGlobal(const char *name) {
-		return luabacc::getGlobal(m_L, name);
+		return LuaRef::getGlobal(m_L, name);
+	}
+
+	__bacc::Namespace module() {
+		return __bacc::Namespace::module(m_L);
 	}
 
 	LuaRef newNil() {
