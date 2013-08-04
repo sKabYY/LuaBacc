@@ -30,14 +30,18 @@ inline std::string getStackEmptyMsg() {
 
 
 int main() {
-	LuaState state;
 	try {
-		func(state);
+		LuaState state;
+		try {
+			func(state);
+		} catch (std::string e) {
+			std::cerr << e << std::endl;
+		}
+		std::string dump_msg = dumpLuaState(state.state());
+		// Check stack
+		assert(exp_with_msg(dump_msg == getStackEmptyMsg(), dump_msg));
 	} catch (std::string e) {
-		std::cerr << e << std::endl;
+		std::cerr << "Exception: " << e << std::endl;
 	}
-	std::string dump_msg = dumpLuaState(state.state());
-	// Check stack
-	assert(exp_with_msg(dump_msg == getStackEmptyMsg(), dump_msg));
 	return 0;
 }

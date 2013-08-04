@@ -14,6 +14,7 @@ namespace luabacc {
 
 #include "bacc/luastack.h"
 #include "bacc/cfunction.h"
+#include "bacc/constructor.h"
 
 #include "bacc/namespace.h"
 #include "bacc/luaref.h"

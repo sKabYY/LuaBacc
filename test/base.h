@@ -30,15 +30,19 @@ inline std::string getStackEmptyMsg() {
 
 
 int main() {
-	lua_State *L = luaS_newstate();
 	try {
-		func(L);
+		lua_State *L = luaS_newstate();
+		try {
+			func(L);
+		} catch (std::string e) {
+			std::cerr << e << std::endl;
+		}
+		std::string dump_msg = dumpLuaState(L);
+		// Check stack
+		assert(exp_with_msg(dump_msg == getStackEmptyMsg(), dump_msg));
+		luaS_close(L);
 	} catch (std::string e) {
-		std::cerr << e << std::endl;
+		std::cerr << "Exception: " << e << std::endl;
 	}
-	std::string dump_msg = dumpLuaState(L);
-	// Check stack
-	assert(exp_with_msg(dump_msg == getStackEmptyMsg(), dump_msg));
-	luaS_close(L);
 	return 0;
 }

@@ -57,6 +57,13 @@ namespace __bacc {
 		}
 	};
 
+	template <typename T>
+	struct LuaStack<T*> {
+		static T* get(lua_State* L, int index) {
+			return static_cast<T*>(lua_touserdata(L, index));
+		}
+	};
+
 #undef LUASTACK_PROTOTYPE
 
 }
