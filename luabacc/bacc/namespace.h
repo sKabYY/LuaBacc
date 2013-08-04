@@ -4,8 +4,9 @@
 namespace __bacc {
 
 	class Namespace {
+		friend class Class;
 	private:
-		lua_State* m_L;
+		lua_State *const m_L;
 		bool m_isEnd;
 		Namespace *const m_parent;
 		Namespace operator= (Namespace const& other);
@@ -30,6 +31,7 @@ namespace __bacc {
 				luaS_rawset(m_L, name);
 				luaS_rawget(m_L, name);
 			}
+			assert(lua_istable(m_L, -1));
 		}
 
 		void pop() {
@@ -47,7 +49,9 @@ namespace __bacc {
 		Namespace(Namespace const& other)
 			: m_L(other.m_L),
 				m_isEnd(other.m_isEnd),
-				m_parent(other.m_parent) {}
+				m_parent(other.m_parent) {
+			assert(0 && "Calling Namespace(Namespace const&)");
+		}
 
 		Namespace namespace_(char const* name) {
 			return Namespace(this, name);
