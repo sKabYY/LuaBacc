@@ -12,6 +12,7 @@ test_list = [
     'ns',
     'ns2',
     'cls',
+    'sup',
 ]
 
 CXXFLAGS = '-g -Wall -Wextra -std=c++0x -L../luacapi/'

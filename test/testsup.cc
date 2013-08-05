@@ -29,12 +29,12 @@ public:
 };
 
 
+char const* g_c2 = "never show this";
+
 class C2 : public C1 {
-private:
-	int i;
 public:
 	void p2() {
-		std::cout << i << std::endl;
+		g_c2 = "p2";
 	}
 };
 
@@ -50,27 +50,15 @@ void func(LuaState& state) {
 		.end()
 		.class_<C2>("C2", "C1")
 			.def(constructor<>())
+			.def("p2", &C2::p2)
 		.end();
 	state.dostring(
 			"c = C2()\n"
 			"c:f(3)\n"
+			"c:p2()\n"
 	);
 	assert(g_i == 3);
 	assert(!strcmp(g_s, "hehe"));
-	state.dostring(
-			"c = C2:is(42, 'lala')\n"
-			"c:f(4)\n"
-			"i = c:getIAdd(4)\n"
-			"sd = c.cop(1, 2.2)\n"
-			"c:p2()\n"
-			"c:__gc()\n"
-	);
-	assert(g_i == 46);
-	assert(!strcmp(g_s, "lala"));
-	int i = state.getGlobal("i");
-	assert(i == 46);
-	assert(!strcmp(g_des_msg, "lala"));
-	double d = state.getGlobal("sd");
-	assert(d == 3.2);
+	assert(!strcmp(g_c2, "p2"));
 }
 
