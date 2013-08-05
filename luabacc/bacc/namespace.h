@@ -169,17 +169,21 @@ namespace __bacc {
 			assert(0 && "Calling Namespace(Namespace const&)");
 		}
 
+		/*
+		 * Create or begin a namespace.
+		 */
 		Namespace namespace_(char const* name) {
 			return Namespace(this, name);
 		}
 
+		/*
+		 * End a namespace.
+		 * Do not use this on global namespace (module).
+		 */
 		Namespace& end() {
 			pop();
-			if (m_parent == NULL) {
-				return *this;
-			} else {
-				return *m_parent;
-			}
+			assert(m_parent != NULL);
+			return *m_parent;
 		}
 
 		/*
@@ -211,6 +215,9 @@ namespace __bacc {
 			return Class<C>(this, name, superclassname);
 		}
 
+		/*
+		 * Begin binding!
+		 */
 		static Namespace module(lua_State* L) {
 			return Namespace(L);
 		}
