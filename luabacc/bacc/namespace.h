@@ -8,6 +8,10 @@ namespace __bacc {
 
 	private:
 
+		/*
+		 * Define the prototype of class T.
+		 * The prototype is a table in lua.
+		 */
 		template <typename T>
 		class Class {
 			friend class Namespace;
@@ -19,10 +23,11 @@ namespace __bacc {
 			Class operator= (Class const* other);
 
 		private:
-			Class(Namespace* ns, char const* name)
-				: m_L(ns->m_L),
-					m_namespace(ns),
-					m_isEnd(false) {
+			/*
+			 * Push the class named "name" on the top of the stack
+			 * or create a class named "name" and push it on the top of the stack
+			 */
+			void load_or_create(char const* name) {
 				assert(lua_istable(m_L, -1));
 				luaS_rawget(m_L, name);
 				if (lua_isnil(m_L, -1)) {
@@ -36,6 +41,23 @@ namespace __bacc {
 					luaS_rawset(m_L, "__gc");
 				}
 				assert(lua_istable(m_L, -1));
+			}
+
+			Class(Namespace* ns, char const* name)
+				: m_L(ns->m_L),
+					m_namespace(ns),
+					m_isEnd(false) {
+				load_or_create(name);
+			}
+
+			Class(Namespace* ns, char const* name, char const* superclassname)
+				: m_L(ns->m_L),
+					m_namespace(ns),
+					m_isEnd(false) {
+				load_or_create(name);
+				luaS_rawgeti(m_L, -2, superclassname);
+				assert(lua_istable(m_L, -1));
+				lua_setmetatable(m_L, -2);
 			}
 
 			void pop() {
@@ -67,7 +89,8 @@ namespace __bacc {
 			 */
 			template <typename... Ps>
 			Class<T>& def(constructor<Ps...>) {
-				lua_newtable(m_L);
+				if (lua_getmetatable(m_L, -1) == 0)
+					lua_newtable(m_L);
 				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
 				luaS_rawset(m_L, "__call");
 				lua_setmetatable(m_L, -2);
@@ -90,6 +113,18 @@ namespace __bacc {
 			template <typename R, typename... Ps>
 			Class<T>& def(char const* name, R (T::*mfp)(Ps...)) {
 				typedef R (T::*MFP)(Ps...);
+				new (lua_newuserdata(m_L, sizeof(mfp))) MFP(mfp);
+				lua_pushcclosure(m_L, &__bacc::CFunction<MFP>::call, 1);
+				luaS_rawset(m_L, name);
+				return *this;
+			}
+
+			/*
+			 * Define a const member function.
+			 */
+			template <typename R, typename... Ps>
+			Class<T>& def(char const* name, R (T::*mfp)(Ps...) const) {
+				typedef R (T::*MFP)(Ps...) const;
 				new (lua_newuserdata(m_L, sizeof(mfp))) MFP(mfp);
 				lua_pushcclosure(m_L, &__bacc::CFunction<MFP>::call, 1);
 				luaS_rawset(m_L, name);
@@ -157,19 +192,26 @@ namespace __bacc {
 			assert(0 && "Calling Namespace(Namespace const&)");
 		}
 
+		/*
+		 * Create or begin a namespace.
+		 */
 		Namespace namespace_(char const* name) {
 			return Namespace(this, name);
 		}
 
+		/*
+		 * End a namespace.
+		 * Do not use this on global namespace (module).
+		 */
 		Namespace& end() {
 			pop();
-			if (m_parent == NULL) {
-				return *this;
-			} else {
-				return *m_parent;
-			}
+			assert(m_parent != NULL);
+			return *m_parent;
 		}
 
+		/*
+		 * Add a function
+		 */
 		template <typename R, typename... Ps>
 		Namespace& def(char const* name, R (*fp)(Ps...)) {
 			typedef R (*FP)(Ps...);
@@ -179,11 +221,30 @@ namespace __bacc {
 			return *this;
 		}
 
+		/*
+		 * Create or begin a class
+		 */
 		template <typename C>
 		Class<C> class_(char const* name) {
 			return Class<C>(this, name);
 		}
 
+		/*
+		 * Superclassname is the lua name of the superclass which 
+		 * has been registered in lua.
+		 * Superclass must be in the same namespace with class C.
+		 * The derived class does not inherit the constructors.
+		 * Calling the constructors of the superclass just return 
+		 * a instance of the superclass
+		 */
+		template <typename C>
+		Class<C> class_(char const* name, char const* superclassname) {
+			return Class<C>(this, name, superclassname);
+		}
+
+		/*
+		 * Begin binding!
+		 */
 		static Namespace module(lua_State* L) {
 			return Namespace(L);
 		}

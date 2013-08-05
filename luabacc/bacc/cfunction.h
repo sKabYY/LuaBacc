@@ -93,11 +93,27 @@ namespace __bacc {
 		}
 	};
 
+	// ==========================================================
+
+	template <typename R, typename C, typename... Ps>
+	struct CFunction<R (C::*)(Ps...) const> {
+		typedef R(C::*MFP)(Ps...) const;
+		static int call(lua_State* L) {
+			return RecursiveMemberCaller<MFP, R, C, Ps...>::call(L);
+		}
+	};
+
+	// ==========================================================
+
 	template <typename C>
 	struct CDestructor {
 		static int call(lua_State* L) {
 			C *const self = __bacc::LuaStack<C*>::get(L, 1);
-			self->~C();
+			// If self == NULL, __gc is call by a class prototype,
+			// which is a table in lua.
+			if (self != NULL) {
+				self->~C();
+			}
 			return 0;
 		}
 	};

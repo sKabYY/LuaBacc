@@ -27,7 +27,8 @@ inline std::string dumpLuaState(lua_State *L) {
 			ostr << "  " << i << ": " << lua_tonumber(L, i) << "\n";
 			break;
 		default:
-			ostr << "  " << i << ": TYPE=" << lua_typename(L, t) << "\n";
+			ostr << "  " << i << ": TYPE=" << lua_typename(L, t) 
+				<< "<" << lua_topointer(L, i) << ">" << "\n";
 			break;
 		}
 	}
