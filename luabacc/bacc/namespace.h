@@ -230,12 +230,12 @@ namespace __bacc {
 		}
 
 		/*
-		 * Superclassname is the lua name of the superclass which 
+		 * Superclassname is the lua name of the superclass which
 		 * has been registered in lua.
 		 * Superclass must be in the same namespace with class C.
 		 * The derived class does not inherit the constructors.
 		 * Calling the constructors of the superclass just return 
-		 * a instance of the superclass
+		 * instance of the superclass and may cause unpredictable results.
 		 */
 		template <typename C>
 		Class<C> class_(char const* name, char const* superclassname) {
