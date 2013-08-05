@@ -21,6 +21,7 @@ Support
 
 ###Accessing C++ from lua
 - Calling C++ function from lua. Supporting variable arguements.
+- Binding C++ class to lua. (Only support constructor and member function right now.)
 
 ###TODO
 - There is always something to be done.

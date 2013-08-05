@@ -1,8 +1,9 @@
 #include "base_wrapper.h"
 #include <cstring>
 
-int g_i;
-char const* g_s;
+int g_i = -1234;
+char const* g_s = "never show this";
+char const* g_des_msg = "never show this";
 
 class C1 {
 private:
@@ -11,9 +12,16 @@ private:
 public:
 	C1() : i(0), s("hehe") {}
 	C1(int _i, char const* _s) : i(_i), s(_s) {}
+	~C1() {g_des_msg = s;}
 	void f(int d) {
 		g_i = i + d;
 		g_s = s;
+	}
+	int getIAdd(int d) {
+		return i + d;
+	}
+	static double cop(int a, double b) {
+		return a + b;
 	}
 };
 
@@ -23,6 +31,8 @@ void func(LuaState& state) {
 			.def(constructor<>())
 			.def("is", constructor<int, char const*>())
 			.def("f", &C1::f)
+			.def("getIAdd", &C1::getIAdd)
+			.def("cop", &C1::cop)
 		.end();
 	state.dostring(
 			"c = C1()\n"
@@ -33,8 +43,16 @@ void func(LuaState& state) {
 	state.dostring(
 			"c = C1:is(42, 'lala')\n"
 			"c:f(4)\n"
+			"i = c:getIAdd(4)\n"
+			"sd = c.cop(1, 2.2)\n"
+			"c:__gc()\n"
 	);
 	assert(g_i == 46);
 	assert(!strcmp(g_s, "lala"));
+	int i = state.getGlobal("i");
+	assert(i == 46);
+	assert(!strcmp(g_des_msg, "lala"));
+	double d = state.getGlobal("sd");
+	assert(d == 3.2);
 }
 

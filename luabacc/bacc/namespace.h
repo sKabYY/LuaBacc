@@ -32,6 +32,8 @@ namespace __bacc {
 					luaS_rawget(m_L, name);
 					lua_pushvalue(m_L, -1);
 					luaS_rawset(m_L, "__index");
+					lua_pushcclosure(m_L, &__bacc::CDestructor<T>::call, 0);
+					luaS_rawset(m_L, "__gc");
 				}
 				assert(lua_istable(m_L, -1));
 			}
@@ -60,6 +62,9 @@ namespace __bacc {
 				return *m_namespace;
 			}
 
+			/*
+			 * Define constructor without a name.
+			 */
 			template <typename... Ps>
 			Class<T>& def(constructor<Ps...>) {
 				lua_newtable(m_L);
@@ -69,6 +74,9 @@ namespace __bacc {
 				return *this;
 			}
 
+			/*
+			 * Define constructor with a name.
+			 */
 			template <typename... Ps>
 			Class<T>& def(char const* name, constructor<Ps...>) {
 				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
@@ -76,11 +84,26 @@ namespace __bacc {
 				return *this;
 			}
 
+			/*
+			 * Define a member function.
+			 */
 			template <typename R, typename... Ps>
 			Class<T>& def(char const* name, R (T::*mfp)(Ps...)) {
 				typedef R (T::*MFP)(Ps...);
 				new (lua_newuserdata(m_L, sizeof(mfp))) MFP(mfp);
 				lua_pushcclosure(m_L, &__bacc::CFunction<MFP>::call, 1);
+				luaS_rawset(m_L, name);
+				return *this;
+			}
+
+			/*
+			 * Define a static member function.
+			 */
+			template <typename R, typename... Ps>
+			Class<T>& def(char const* name, R (*fp)(Ps...)) {
+				typedef R (*FP)(Ps...);
+				new (lua_newuserdata(m_L, sizeof(fp))) FP(fp);
+				lua_pushcclosure(m_L, &__bacc::CFunction<FP>::call, 1);
 				luaS_rawset(m_L, name);
 				return *this;
 			}
