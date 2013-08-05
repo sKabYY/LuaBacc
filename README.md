@@ -3,6 +3,8 @@ LuaBacc (IN PROCESS)
 
 [LuaBacc][luabacc] is a Lua binder. It is similar to [LuaBridge][luabridge].
 
+Need a compiler with <strong>C++0x</strong> feature support.
+
 ###The meaning of "bacc":
 > - Maybe "b" means binding,
 > - "bac" is the shortcut of "bachelor" (If you meet a chinese bachelor, just say "Lua" to him and then you will be friends),
@@ -26,8 +28,10 @@ Support
 - Auto binding destructor to lua.
 - Binding member functions to lua.
 - Binding static member functions to lua.
+- Binding a derived class to lua.
 
 ###TODO
+- Binding a pointer of a C++ object to lua.
 - There is always something to be done.
 
 
