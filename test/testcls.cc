@@ -20,6 +20,9 @@ public:
 	int getIAdd(int d) {
 		return i + d;
 	}
+	static double cop(int a, double b) {
+		return a + b;
+	}
 };
 
 void func(LuaState& state) {
@@ -29,6 +32,7 @@ void func(LuaState& state) {
 			.def("is", constructor<int, char const*>())
 			.def("f", &C1::f)
 			.def("getIAdd", &C1::getIAdd)
+			.def("cop", &C1::cop)
 		.end();
 	state.dostring(
 			"c = C1()\n"
@@ -40,6 +44,7 @@ void func(LuaState& state) {
 			"c = C1:is(42, 'lala')\n"
 			"c:f(4)\n"
 			"i = c:getIAdd(4)\n"
+			"sd = c.cop(1, 2.2)\n"
 			"c:__gc()\n"
 	);
 	assert(g_i == 46);
@@ -47,5 +52,7 @@ void func(LuaState& state) {
 	int i = state.getGlobal("i");
 	assert(i == 46);
 	assert(!strcmp(g_des_msg, "lala"));
+	double d = state.getGlobal("sd");
+	assert(d == 3.2);
 }
 
