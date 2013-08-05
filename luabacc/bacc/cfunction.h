@@ -93,6 +93,18 @@ namespace __bacc {
 		}
 	};
 
+	// ==========================================================
+
+	template <typename R, typename C, typename... Ps>
+	struct CFunction<R (C::*)(Ps...) const> {
+		typedef R(C::*MFP)(Ps...) const;
+		static int call(lua_State* L) {
+			return RecursiveMemberCaller<MFP, R, C, Ps...>::call(L);
+		}
+	};
+
+	// ==========================================================
+
 	template <typename C>
 	struct CDestructor {
 		static int call(lua_State* L) {

@@ -17,7 +17,7 @@ public:
 		g_i = i + d;
 		g_s = s;
 	}
-	int getIAdd(int d) {
+	int getIAdd(int d) const {
 		return i + d;
 	}
 	static double cop(int a, double b) {

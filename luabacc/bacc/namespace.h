@@ -97,6 +97,18 @@ namespace __bacc {
 			}
 
 			/*
+			 * Define a const member function.
+			 */
+			template <typename R, typename... Ps>
+			Class<T>& def(char const* name, R (T::*mfp)(Ps...) const) {
+				typedef R (T::*MFP)(Ps...) const;
+				new (lua_newuserdata(m_L, sizeof(mfp))) MFP(mfp);
+				lua_pushcclosure(m_L, &__bacc::CFunction<MFP>::call, 1);
+				luaS_rawset(m_L, name);
+				return *this;
+			}
+
+			/*
 			 * Define a static member function.
 			 */
 			template <typename R, typename... Ps>
@@ -170,6 +182,9 @@ namespace __bacc {
 			}
 		}
 
+		/*
+		 * Add a function
+		 */
 		template <typename R, typename... Ps>
 		Namespace& def(char const* name, R (*fp)(Ps...)) {
 			typedef R (*FP)(Ps...);
@@ -179,9 +194,21 @@ namespace __bacc {
 			return *this;
 		}
 
+		/*
+		 * Create or begin a class
+		 */
 		template <typename C>
 		Class<C> class_(char const* name) {
 			return Class<C>(this, name);
+		}
+
+		/*
+		 * Superclassname is the lua name of the superclass which 
+		 * has been registered in lua.
+		 */
+		template <typename C>
+		Class<C> class_(char const* name, char const* superclassname) {
+			return Class<C>(this, name, superclassname);
 		}
 
 		static Namespace module(lua_State* L) {
