@@ -32,6 +32,8 @@ namespace __bacc {
 					luaS_rawget(m_L, name);
 					lua_pushvalue(m_L, -1);
 					luaS_rawset(m_L, "__index");
+					lua_pushcclosure(m_L, &__bacc::CDestructor<T>::call, 0);
+					luaS_rawset(m_L, "__gc");
 				}
 				assert(lua_istable(m_L, -1));
 			}

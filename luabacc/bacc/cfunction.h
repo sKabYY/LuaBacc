@@ -68,7 +68,7 @@ namespace __bacc {
 	struct RecursiveMemberCaller<MFP, R, C> {
 		template <typename... U>
 		static int call(lua_State* L, U... u) {
-			C* self = __bacc::LuaStack<void*>::get(L, 1);
+			C* self = __bacc::LuaStack<C*>::get(L, 1);
 			MFP const& mfp = *static_cast<MFP*>(lua_touserdata(L, lua_upvalueindex(1)));
 			__bacc::LuaStack<R>::push(L, (self->*mfp)(u...));
 			return 1;
@@ -90,6 +90,15 @@ namespace __bacc {
 		typedef R(C::*MFP)(Ps...);
 		static int call(lua_State* L) {
 			return RecursiveMemberCaller<MFP, R, C, Ps...>::call(L);
+		}
+	};
+
+	template <typename C>
+	struct CDestructor {
+		static int call(lua_State* L) {
+			C *const self = __bacc::LuaStack<C*>::get(L, 1);
+			self->~C();
+			return 0;
 		}
 	};
 
