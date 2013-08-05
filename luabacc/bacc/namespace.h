@@ -8,6 +8,10 @@ namespace __bacc {
 
 	private:
 
+		/*
+		 * Define the prototype of class T.
+		 * The prototype is a table in lua.
+		 */
 		template <typename T>
 		class Class {
 			friend class Namespace;
@@ -19,10 +23,11 @@ namespace __bacc {
 			Class operator= (Class const* other);
 
 		private:
-			Class(Namespace* ns, char const* name)
-				: m_L(ns->m_L),
-					m_namespace(ns),
-					m_isEnd(false) {
+			/*
+			 * Push the class named "name" on the top of the stack
+			 * or create a class named "name" and push it on the top of the stack
+			 */
+			void load_or_create(char const* name) {
 				assert(lua_istable(m_L, -1));
 				luaS_rawget(m_L, name);
 				if (lua_isnil(m_L, -1)) {
@@ -36,6 +41,23 @@ namespace __bacc {
 					luaS_rawset(m_L, "__gc");
 				}
 				assert(lua_istable(m_L, -1));
+			}
+
+			Class(Namespace* ns, char const* name)
+				: m_L(ns->m_L),
+					m_namespace(ns),
+					m_isEnd(false) {
+				load_or_create(name);
+			}
+
+			Class(Namespace* ns, char const* name, char const* superclassname)
+				: m_L(ns->m_L),
+					m_namespace(ns),
+					m_isEnd(false) {
+				load_or_create(name);
+				luaS_rawgeti(m_L, -2, superclassname);
+				assert(lua_istable(m_L, -1));
+				lua_setmetatable(m_L, -2);
 			}
 
 			void pop() {
@@ -67,7 +89,8 @@ namespace __bacc {
 			 */
 			template <typename... Ps>
 			Class<T>& def(constructor<Ps...>) {
-				lua_newtable(m_L);
+				if (lua_getmetatable(m_L, -1) == 0)
+					lua_newtable(m_L);
 				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
 				luaS_rawset(m_L, "__call");
 				lua_setmetatable(m_L, -2);
@@ -209,6 +232,7 @@ namespace __bacc {
 		/*
 		 * Superclassname is the lua name of the superclass which 
 		 * has been registered in lua.
+		 * Superclass must be in the same namespace with class C.
 		 */
 		template <typename C>
 		Class<C> class_(char const* name, char const* superclassname) {

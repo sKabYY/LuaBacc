@@ -109,7 +109,11 @@ namespace __bacc {
 	struct CDestructor {
 		static int call(lua_State* L) {
 			C *const self = __bacc::LuaStack<C*>::get(L, 1);
-			self->~C();
+			// If self == NULL, __gc is call by a class prototype,
+			// which is a table in lua.
+			if (self != NULL) {
+				self->~C();
+			}
 			return 0;
 		}
 	};
