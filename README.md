@@ -31,7 +31,8 @@ Support
 - Binding a derived class to lua.
 
 ###TODO
-- Binding a pointer of a C++ object to lua.
+- Add a feature to bind a pointer of a C++ object to lua.
+- Write manual.
 - There is always something to be done.
 
 
