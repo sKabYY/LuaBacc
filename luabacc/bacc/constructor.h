@@ -18,8 +18,12 @@ namespace __bacc {
 	struct NewUserData<C> {
 		template <typename... U>
 		static void call(lua_State* L, U... u) {
-			void* self = lua_newuserdata(L, sizeof(C));
+			void *const self = lua_newuserdata(L, sizeof(C));
 			new (self) C(u...);
+			// Keep a reference of userdata *self so that it will not
+			// be collected by the Lua garbage collection.
+			lua_rawsetp(L, LUA_REGISTRYINDEX, self);
+			new (lua_newuserdata(L, sizeof(void*))) void*(self);
 		}
 	};
 
@@ -28,7 +32,7 @@ namespace __bacc {
 		template <typename... U>
 		static void call(lua_State* L, U... u) {
 			const int n = static_cast<int>(2 + sizeof...(U));
-			H h = __bacc::LuaStack<H>::get(L, n);
+			const H h = __bacc::LuaStack<H>::get(L, n);
 			NewUserData<C, T...>::call(L, u..., h);
 		}
 	};

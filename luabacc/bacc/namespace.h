@@ -10,7 +10,23 @@ namespace __bacc {
 
 		/*
 		 * Define the prototype of class T.
-		 * The prototype is a table in lua.
+		 * The prototype is two table in lua: class table and member table.
+		 *
+		 * Class table:
+		 *    Define the constructors and destructor.
+		 *    Lua uses this table the create a new instance.
+		 *    __index is itself.
+		 *    This table will have a name when binding class.
+		 *
+		 * Member table:
+		 *    Define the member functions.
+		 *    This table is used for calling the member functions.
+		 *    __index is itself.
+		 *
+		 * If A => B means B is the metatable of A then:
+		 *    Instance(lua lifetime) => class table => member table
+		 *    Instance(C++ lifetime) => member table
+		 *    Inheritance: Class table => member table => member table of superclass
 		 */
 		template <typename T>
 		class Class {
@@ -24,21 +40,48 @@ namespace __bacc {
 
 		private:
 			/*
-			 * Push the class named "name" on the top of the stack
-			 * or create a class named "name" and push it on the top of the stack
+			 * t.__index = t where t is the table on the top of the stack.
+			 */
+			void __index_self() {
+				lua_pushvalue(m_L, -1);
+				luaS_rawset(m_L, "__index");
+			}
+
+			/*
+			 * Push the class table and the member table.
+			 *
+			 * Before calling this function the Lua stack holds these objects:
+			 *    -1 (enclosing namespace)
+			 *    ...
+			 *
+			 * After calling this function the Lua stack holds these objects:
+			 *    -1 member table
+			 *    -2 class table
+			 *    -3 (enclosing namespace)
+			 *    ...
 			 */
 			void load_or_create(char const* name) {
 				assert(lua_istable(m_L, -1));
 				luaS_rawget(m_L, name);
 				if (lua_isnil(m_L, -1)) {
 					lua_pop(m_L, 1);
+					// class table
 					lua_newtable(m_L);
-					luaS_rawset(m_L, name);
-					luaS_rawget(m_L, name);
 					lua_pushvalue(m_L, -1);
-					luaS_rawset(m_L, "__index");
+					luaS_rawseti(m_L, -3, name);
+					__index_self();
 					lua_pushcclosure(m_L, &__bacc::CDestructor<T>::call, 0);
-					luaS_rawset(m_L, "__gc");
+					luaS_rawset(m_L, "__gc");  // bind destructor
+					// member table
+					lua_newtable(m_L);
+					__index_self();
+					lua_pushvalue(m_L, -1);
+					lua_rawsetp(m_L, LUA_REGISTRYINDEX, __bacc::TypeInfo<T>::key());
+					// class table => member table
+					lua_pushvalue(m_L, -1);
+					lua_setmetatable(m_L, -3);
+				} else {
+					lua_rawgetp(m_L, LUA_REGISTRYINDEX, __bacc::TypeInfo<T>::key());
 				}
 				assert(lua_istable(m_L, -1));
 			}
@@ -50,19 +93,19 @@ namespace __bacc {
 				load_or_create(name);
 			}
 
-			Class(Namespace* ns, char const* name, char const* superclassname)
+			Class(Namespace* ns, char const* name, void const* superkey)
 				: m_L(ns->m_L),
 					m_namespace(ns),
 					m_isEnd(false) {
 				load_or_create(name);
-				luaS_rawgeti(m_L, -2, superclassname);
+				lua_rawgetp(m_L, LUA_REGISTRYINDEX, superkey);
 				assert(lua_istable(m_L, -1));
 				lua_setmetatable(m_L, -2);
 			}
 
 			void pop() {
 				if (!m_isEnd) {
-					lua_pop(m_L, 1);
+					lua_pop(m_L, 2); // pop the class table and the member table
 					m_isEnd = true;
 				}
 			}
@@ -89,11 +132,11 @@ namespace __bacc {
 			 */
 			template <typename... Ps>
 			Class<T>& def(constructor<Ps...>) {
-				if (lua_getmetatable(m_L, -1) == 0)
+				if (lua_getmetatable(m_L, -2) == 0)
 					lua_newtable(m_L);
 				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
 				luaS_rawset(m_L, "__call");
-				lua_setmetatable(m_L, -2);
+				lua_setmetatable(m_L, -3);
 				return *this;
 			}
 
@@ -103,7 +146,7 @@ namespace __bacc {
 			template <typename... Ps>
 			Class<T>& def(char const* name, constructor<Ps...>) {
 				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
-				luaS_rawset(m_L, name);
+				luaS_rawseti(m_L, -3, name);
 				return *this;
 			}
 
@@ -210,13 +253,28 @@ namespace __bacc {
 		}
 
 		/*
-		 * Add a function
+		 * Bind a function.
 		 */
 		template <typename R, typename... Ps>
 		Namespace& def(char const* name, R (*fp)(Ps...)) {
 			typedef R (*FP)(Ps...);
 			new (lua_newuserdata(m_L, sizeof(fp))) FP(fp);
 			lua_pushcclosure(m_L, &__bacc::CFunction<FP>::call, 1);
+			luaS_rawset(m_L, name);
+			return *this;
+		}
+
+		/*
+		 * Register an object of class T to lua.
+		 * This object is in C++ lifetime.
+		 */
+		template <typename T>
+		Namespace& def_object(char const* name, T* p) {
+			new (lua_newuserdata(m_L, sizeof(p))) T*(p);
+			void const* key = __bacc::TypeInfo<T>::key();
+			lua_rawgetp(m_L, LUA_REGISTRYINDEX, key);
+			assert(lua_istable(m_L, -1));
+			lua_setmetatable(m_L, -2);
 			luaS_rawset(m_L, name);
 			return *this;
 		}
@@ -230,16 +288,12 @@ namespace __bacc {
 		}
 
 		/*
-		 * Superclassname is the lua name of the superclass which 
-		 * has been registered in lua.
-		 * Superclass must be in the same namespace with class C.
-		 * The derived class does not inherit the constructors.
-		 * Calling the constructors of the superclass just return 
-		 * a instance of the superclass
+		 * Create or begin a class derived from class S
 		 */
-		template <typename C>
-		Class<C> class_(char const* name, char const* superclassname) {
-			return Class<C>(this, name, superclassname);
+		template <typename C, typename S>
+		Class<C> derive_(char const* name) {
+			void const* p = __bacc::TypeInfo<S>::key();
+			return Class<C>(this, name, p);
 		}
 
 		/*

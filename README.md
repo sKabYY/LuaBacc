@@ -1,7 +1,9 @@
 LuaBacc (IN PROCESS)
 =======
 
-[LuaBacc][luabacc] is a Lua binder. It is similar to [LuaBridge][luabridge].
+[LuaBacc][luabacc] is a Lua binder. It is similar to [LuaBridge][luabridge]. By the way, [Luabind][] is an amazing Lua binder.
+
+Need a compiler with <strong>C++0x</strong> feature support.
 
 ###The meaning of "bacc":
 > - Maybe "b" means binding,
@@ -26,10 +28,21 @@ Support
 - Auto binding destructor to lua.
 - Binding member functions to lua.
 - Binding static member functions to lua.
+- Binding a derived class to lua.
 
 ###TODO
+- Add a feature to bind a pointer of a C++ object to lua.
+- Write manual.
 - There is always something to be done.
+
+External links
+--------------
+- [Lua 5.2 Reference Manual][luaManual]
+- [LuaBridge 2.0 Reference Manual][luabridgeReference]
 
 
   [luabacc]: https://github.com/sKabYY/LuaBacc
   [luabridge]: https://github.com/vinniefalco/LuaBridge
+  [luabind]: http://www.rasterbar.com/products/luabind.html
+  [luaManual]: http://www.lua.org/manual/5.2/manual.html
+  [luabridgeReference]: http://vinniefalco.com/LuaBridge/Manual.html

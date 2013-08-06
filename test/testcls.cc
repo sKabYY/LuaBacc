@@ -36,6 +36,7 @@ void func(LuaState& state) {
 		.end();
 	state.dostring(
 			"c = C1()\n"
+			"collectgarbage()\n"
 			"c:f(3)\n"
 	);
 	assert(g_i == 3);

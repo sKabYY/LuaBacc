@@ -42,6 +42,7 @@ int main() {
 		assert(exp_with_msg(dump_msg == getStackEmptyMsg(), dump_msg));
 	} catch (std::string e) {
 		std::cerr << "Exception: " << e << std::endl;
+		return 1;
 	}
 	return 0;
 }
