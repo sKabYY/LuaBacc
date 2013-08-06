@@ -72,18 +72,16 @@ namespace __bacc {
 					__index_self();
 					lua_pushcclosure(m_L, &__bacc::CDestructor<T>::call, 0);
 					luaS_rawset(m_L, "__gc");  // bind destructor
-					lua_pushvalue(m_L, -1);
-					lua_rawsetp(m_L, LUA_REGISTRYINDEX, __bacc::TypeInfo<T>::classKey());
 					// member table
 					lua_newtable(m_L);
 					__index_self();
 					lua_pushvalue(m_L, -1);
-					lua_rawsetp(m_L, LUA_REGISTRYINDEX, __bacc::TypeInfo<T>::memberKey());
+					lua_rawsetp(m_L, LUA_REGISTRYINDEX, __bacc::TypeInfo<T>::key());
 					// class table => member table
 					lua_pushvalue(m_L, -1);
 					lua_setmetatable(m_L, -3);
 				} else {
-					lua_rawgetp(m_L, LUA_REGISTRYINDEX, __bacc::TypeInfo<T>::memberKey());
+					lua_rawgetp(m_L, LUA_REGISTRYINDEX, __bacc::TypeInfo<T>::key());
 				}
 				assert(lua_istable(m_L, -1));
 			}
@@ -279,7 +277,7 @@ namespace __bacc {
 		 */
 		template <typename C, typename S>
 		Class<C> derive_(char const* name) {
-			void const* p = __bacc::TypeInfo<S>::memberKey();
+			void const* p = __bacc::TypeInfo<S>::key();
 			return Class<C>(this, name, p);
 		}
 
