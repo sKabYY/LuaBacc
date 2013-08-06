@@ -146,7 +146,7 @@ namespace __bacc {
 			template <typename... Ps>
 			Class<T>& def(char const* name, constructor<Ps...>) {
 				lua_pushcclosure(m_L, &__bacc::Constructor<T, Ps...>::call, 0);
-				luaS_rawseti(m_L, -2, name);
+				luaS_rawseti(m_L, -3, name);
 				return *this;
 			}
 
