@@ -110,6 +110,9 @@ namespace __bacc {
 		static int call(lua_State* L) {
 			C **const self = __bacc::LuaStack<C**>::get(L, 1);
 			(*self)->~C();
+			lua_pushnil(L);
+			// Mark userdata *self (if it's Lua lifetime) as garbage.
+			lua_rawsetp(L, LUA_REGISTRYINDEX, self);
 			return 0;
 		}
 	};

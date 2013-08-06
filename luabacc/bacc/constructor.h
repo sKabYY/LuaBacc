@@ -20,7 +20,9 @@ namespace __bacc {
 		static void call(lua_State* L, U... u) {
 			void *const self = lua_newuserdata(L, sizeof(C));
 			new (self) C(u...);
-			lua_pop(L, 1);
+			// Keep a reference of userdata *self so that it will not
+			// be collected by the Lua garbage collection.
+			lua_rawsetp(L, LUA_REGISTRYINDEX, self);
 			new (lua_newuserdata(L, sizeof(void*))) void*(self);
 		}
 	};
