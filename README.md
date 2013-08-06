@@ -35,6 +35,13 @@ Support
 - Write manual.
 - There is always something to be done.
 
+External links
+--------------
+- [Lua 5.2 Reference Manual][luaManual]
+- [LuaBridge 2.0 Reference Manual][luabridgeReference]
+
 
   [luabacc]: https://github.com/sKabYY/LuaBacc
   [luabridge]: https://github.com/vinniefalco/LuaBridge
+  [luaManual]: http://www.lua.org/manual/5.2/manual.html
+  [luabridgeReference]: http://vinniefalco.com/LuaBridge/Manual.html
