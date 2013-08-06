@@ -29,9 +29,9 @@ Support
 - Binding member functions to lua.
 - Binding static member functions to lua.
 - Binding a derived class to lua.
+- Binding a pointer of a C++ object to lua.
 
 ###TODO
-- Add a feature to bind a pointer of a C++ object to lua.
 - Write manual.
 - There is always something to be done.
 
