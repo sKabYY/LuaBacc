@@ -1,7 +1,7 @@
 LuaBacc (IN PROCESS)
 =======
 
-[LuaBacc][luabacc] is a Lua binder. It is similar to [LuaBridge][luabridge].
+[LuaBacc][luabacc] is a Lua binder. It is similar to [LuaBridge][luabridge]. By the way, [Luabind][] is an amazing Lua binder.
 
 Need a compiler with <strong>C++0x</strong> feature support.
 
@@ -43,5 +43,6 @@ External links
 
   [luabacc]: https://github.com/sKabYY/LuaBacc
   [luabridge]: https://github.com/vinniefalco/LuaBridge
+  [luabind]: http://www.rasterbar.com/products/luabind.html
   [luaManual]: http://www.lua.org/manual/5.2/manual.html
   [luabridgeReference]: http://vinniefalco.com/LuaBridge/Manual.html
