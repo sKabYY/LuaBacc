@@ -253,13 +253,28 @@ namespace __bacc {
 		}
 
 		/*
-		 * Add a function
+		 * Bind a function.
 		 */
 		template <typename R, typename... Ps>
 		Namespace& def(char const* name, R (*fp)(Ps...)) {
 			typedef R (*FP)(Ps...);
 			new (lua_newuserdata(m_L, sizeof(fp))) FP(fp);
 			lua_pushcclosure(m_L, &__bacc::CFunction<FP>::call, 1);
+			luaS_rawset(m_L, name);
+			return *this;
+		}
+
+		/*
+		 * Register an object of class T to lua.
+		 * This object is in C++ lifetime.
+		 */
+		template <typename T>
+		Namespace& def_object(char const* name, T* p) {
+			new (lua_newuserdata(m_L, sizeof(p))) T*(p);
+			void const* key = __bacc::TypeInfo<T>::key();
+			lua_rawgetp(m_L, LUA_REGISTRYINDEX, key);
+			assert(lua_istable(m_L, -1));
+			lua_setmetatable(m_L, -2);
 			luaS_rawset(m_L, name);
 			return *this;
 		}
