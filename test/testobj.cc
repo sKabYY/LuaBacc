@@ -10,7 +10,6 @@ public:
 	~C() {
 	}
 	int add(int a) {
-		std::cout << a << "+" << i << std::endl;
 		return a + i;
 	}
 };
@@ -18,7 +17,6 @@ public:
 
 void func(LuaState& state) {
 	C c(1);
-	std::cout << &c << std::endl;
 	state.module()
 		.class_<C>("C")
 			.def(constructor<int>())
@@ -27,11 +25,8 @@ void func(LuaState& state) {
 		.def_object("c", &c);
 	state.dostring(
 			"a = c:add(2)\n"
-			"print(a)\n"
 	);
 	int a = state.getGlobal("a");
-	std::cout << a << std::endl;
-	std::cout << c.add(2) << std::endl;
 	assert(a == 3);
 }
 
