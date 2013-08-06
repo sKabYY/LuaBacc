@@ -43,6 +43,7 @@ int main() {
 		luaS_close(L);
 	} catch (std::string e) {
 		std::cerr << "Exception: " << e << std::endl;
+		return 1;
 	}
 	return 0;
 }

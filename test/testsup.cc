@@ -48,7 +48,7 @@ void func(LuaState& state) {
 			.def("getIAdd", &C1::getIAdd)
 			.def("cop", &C1::cop)
 		.end()
-		.class_<C2>("C2", "C1")
+		.derive_<C2, C1>("C2")
 			.def(constructor<>())
 			.def("p2", &C2::p2)
 		.end();
