@@ -306,7 +306,7 @@ namespace __bacc {
 
 }
 
-__bacc::Namespace module(lua_State* L) {
+inline __bacc::Namespace module(lua_State* L) {
 	return __bacc::Namespace::module(L);
 }
 
