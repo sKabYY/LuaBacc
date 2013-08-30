@@ -1,8 +1,10 @@
 #include <iostream>
 
-#include "../luacapi/lua.hpp"
+//#include "../luacapi/lua.hpp"
+//#include "../luabacc/dump.h"
+//#include "../luabacc/luabacc.h"
+#include "../luabacc-inc.h"
 #include "../luabacc/dump.h"
-#include "../luabacc/luabacc.h"
 using namespace luabacc;
 
 
