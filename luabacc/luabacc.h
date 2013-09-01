@@ -2,6 +2,7 @@
 #define LUABACC_LUABACC_H
 
 #include <cassert>
+#include <ostream>
 #include <string>
 
 /*
